@@ -181,10 +181,20 @@ em.accent { font-style: italic; color: var(--gold-500); }
     linear-gradient(78deg, rgba(7,18,36,.88) 0%, rgba(7,18,36,.66) 38%, rgba(7,18,36,.18) 68%, rgba(7,18,36,.06) 100%),
     linear-gradient(to top, rgba(7,18,36,.72), transparent 42%);
 }
+/* about hero: group photograph, subject sits low in frame */
+.hero--center .hero__media img { object-position: center 30%; }
 .hero--center .hero__scrim {
-  background:
-    linear-gradient(rgba(7,18,36,.55), rgba(7,18,36,.55)),
-    linear-gradient(to top, rgba(7,18,36,.75), transparent 55%);
+  background: linear-gradient(to top, rgba(7,18,36,.82), rgba(7,18,36,.12) 55%, rgba(7,18,36,.3));
+}
+/* On mobile the portrait crop places the group low in frame, leaving the wall
+   above empty. Move the copy up into that space so no one's face is covered. */
+@media (max-width: 759px) {
+  .hero--center { align-items: flex-start; min-height: clamp(560px, 82vh, 700px); }
+  .hero--center .hero__wrap { padding-bottom: 1.5rem; }
+  .hero--center .hero__media img { object-position: center bottom; }
+  .hero--center .hero__scrim {
+    background: linear-gradient(to bottom, rgba(7,18,36,.86) 0%, rgba(7,18,36,.58) 32%, rgba(7,18,36,.14) 56%, rgba(7,18,36,.3) 100%);
+  }
 }
 
 .hero__wrap { --hero-pad: clamp(3rem, 8vh, 5.5rem); width: 100%; padding-block: var(--hero-pad); }
