@@ -1,0 +1,3 @@
+# Development notes. Excluded from the release archives, but the first
+# deployment may use git auto-deploy, which copies them onto the server.
+Require all denied

@@ -1,0 +1,3 @@
+# Build tooling. Excluded from the release archives, but the first deployment
+# may use git auto-deploy, which copies it onto the server.
+Require all denied
