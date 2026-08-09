@@ -33,8 +33,9 @@ OUT="deploy/dist"
 mkdir -p "$OUT"
 rm -f "$OUT"/full-install-*.zip "$OUT"/code-update-*.zip
 
-# Never shipped: internal notes and this tooling.
-DEV_ONLY=('tasks/*' 'deploy/*')
+# Never shipped: internal notes and this tooling. Whole directories, so the
+# archives do not carry empty tasks/ and deploy/ folders onto the server.
+DEV_ONLY=('tasks' 'deploy')
 # Rewritten by the server whenever an article is published.
 GENERATED=('insights.html' 'rss.xml' 'sitemap.xml' 'insights/*')
 
@@ -59,10 +60,17 @@ echo "      $(unzip -Z1 "$FULL" | grep -vc '/$') files -- first upload to an emp
 echo "  $CODE"
 echo "      $(unzip -Z1 "$CODE" | grep -vc '/$') files -- routine updates, leaves the blog alone"
 echo
-echo "Neither archive contains admin/data/blog.sqlite or assets/img/blog/*:"
+echo "Checks:"
 for z in "$FULL" "$CODE"; do
   if unzip -Z1 "$z" | grep -qE 'blog\.sqlite|assets/img/blog/[^/]'; then
-    echo "  FAIL: $z contains live content"; exit 1
+    echo "  FAIL: $(basename "$z") contains live blog content"; exit 1
+  fi
+  if unzip -Z1 "$z" | grep -qE '^(tasks|deploy)/'; then
+    echo "  FAIL: $(basename "$z") contains development-only files"; exit 1
   fi
 done
-echo "  verified."
+if unzip -Z1 "$CODE" | grep -qE '^(insights\.html|rss\.xml|sitemap\.xml|insights/.+)$'; then
+  echo "  FAIL: $(basename "$CODE") contains generated pages; it would revert the client's articles"; exit 1
+fi
+echo "  no live blog content, no dev files, and the update archive leaves the"
+echo "  generated pages alone."

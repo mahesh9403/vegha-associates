@@ -10,4 +10,5 @@ admin/data/blog.sqlite
 # Images uploaded through the admin live on the server, not in the repo.
 assets/img/blog/*
 !assets/img/blog/.gitkeep
+# Release archives built by deploy/make-release.sh; rebuild them, don't commit.
 deploy/dist/
