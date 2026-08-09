@@ -252,6 +252,25 @@
     });
   });
 
+  /* --------------------------------------------- slider fill + quick rates - */
+  $$("input[type=range]").forEach(function (r) {
+    var paint = function () {
+      var mn = parseFloat(r.min) || 0, mx = parseFloat(r.max) || 100;
+      r.style.setProperty("--fill", ((parseFloat(r.value) - mn) / (mx - mn) * 100) + "%");
+    };
+    r.addEventListener("input", paint);
+    paint();
+  });
+  $$("[data-set-rate]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var v = b.getAttribute("data-set-rate");
+      var inp = document.getElementById("rate");
+      var rng = document.getElementById("rate-range");
+      if (inp) { inp.value = v; inp.dispatchEvent(new Event("input", { bubbles: true })); }
+      if (rng) { rng.value = v; rng.dispatchEvent(new Event("input", { bubbles: true })); }
+    });
+  });
+
   /* ---------------------------------------------------------- year stamp - */
   $$("[data-year]").forEach(function (el) { el.textContent = String(new Date().getFullYear()); });
 })();
