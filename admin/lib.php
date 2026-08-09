@@ -28,12 +28,21 @@ const CALC_PAGES = ['calculators/home-loan-emi.html', 'calculators/home-loan-pre
                     'calculators/mutual-fund-returns.html', 'calculators/fd.html', 'calculators/ppf.html',
                     'calculators/gst.html', 'calculators/hra.html', 'calculators/income-tax.html'];
 
+const SEED_PATH = __DIR__ . '/data/seed.sql';
+
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
+        /* The database is not in version control -- this site deploys from git, and a
+           tracked blog.sqlite would overwrite the live one on every push, wiping the
+           password and every published article. So the first run on a new host builds
+           it from seed.sql instead. An existing database is never touched. */
+        $fresh = !is_file(DB_PATH) || filesize(DB_PATH) === 0;
+        if ($fresh && !is_dir(dirname(DB_PATH))) mkdir(dirname(DB_PATH), 0755, true);
         $pdo = new PDO('sqlite:' . DB_PATH);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        if ($fresh && is_readable(SEED_PATH)) $pdo->exec(file_get_contents(SEED_PATH));
     }
     return $pdo;
 }

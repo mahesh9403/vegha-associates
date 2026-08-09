@@ -73,8 +73,26 @@ Test DB was restored from a pre-test backup — the committed `blog.sqlite` has 
 - `rss.xml` `pubDate` offsets follow the *server's* PHP timezone. The vendor's seed file
   carries `+0530`; a host set to UTC will emit `+0000` on the next publish.
 
+## Deployment: database is no longer tracked
+
+The site auto-deploys from GitHub, so a committed `blog.sqlite` meant every push
+overwrote the live database -- wiping the admin password and every article published
+since, and leaving `/admin/` unclaimed for anyone to seize. Fixed by removing it from
+git (`.gitignore`) and having `db()` build the database from `admin/data/seed.sql` when
+it finds none. A fresh host self-seeds; an existing host is never touched.
+
+Verified: with no database present, a request to `/admin/` created it with all three
+tables and the three seeded posts; after setting a password, a further request left the
+password and posts intact (previously this is where a deploy would have wiped them);
+publish and delete still regenerate every output correctly.
+
+Made while the live database was still at seed state with no password set, so nothing
+could be lost. Doing it later would have been riskier.
+
 ## Still outstanding
 
 - Web3Forms key in `assets/js/site.js` (`ACCESS_KEY`) — forms are in demo mode
 - Set the admin password immediately after upload (see README step 3)
 - Tax slabs need a review after each Union Budget
+- Uploaded blog images live only on the server (`assets/img/blog/` is gitignored) --
+  include them in backups alongside `blog.sqlite`

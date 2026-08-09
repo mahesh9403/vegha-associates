@@ -1,3 +1,12 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# The live blog database. This site auto-deploys from the repo, so tracking it
+# would overwrite the server's copy on every push -- wiping the admin password
+# and every article published since. admin/data/seed.sql builds it on first run.
+admin/data/blog.sqlite
+
+# Images uploaded through the admin live on the server, not in the repo.
+assets/img/blog/*
+!assets/img/blog/.gitkeep
