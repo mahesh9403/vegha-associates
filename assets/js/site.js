@@ -252,6 +252,36 @@
     });
   });
 
+
+  /* ------------------------------------------------------- blog filtering - */
+  var blogList = $("#blog-list");
+  if (blogList) {
+    var cards = $$(".post", blogList);
+    var empty = $("#blog-empty");
+    var activeCat = "", q = "";
+    var apply = function () {
+      var shown = 0;
+      cards.forEach(function (c) {
+        var okCat = !activeCat || c.getAttribute("data-cat") === activeCat;
+        var okQ = !q || (c.getAttribute("data-search") || "").indexOf(q) !== -1;
+        var show = okCat && okQ;
+        c.classList.toggle("post--hidden", !show);
+        if (show) shown++;
+      });
+      if (empty) empty.hidden = shown > 0;
+    };
+    $$("#blog-cats button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        $$("#blog-cats button").forEach(function (x) { x.classList.remove("is-active"); });
+        b.classList.add("is-active");
+        activeCat = b.getAttribute("data-cat") || "";
+        apply();
+      });
+    });
+    var search = $("#blog-search");
+    if (search) search.addEventListener("input", function () { q = search.value.trim().toLowerCase(); apply(); });
+  }
+
   /* --------------------------------------------- slider fill + quick rates - */
   $$("input[type=range]").forEach(function (r) {
     var paint = function () {

@@ -1,23 +1,27 @@
 VEGHA & ASSOCIATES website (2026 redesign, deployable build)
 ===============================================================
 
-This folder is the complete, self-contained website. Upload its entire
-contents to the web root. Nothing needs to be installed, compiled or run
-on the server. Plain HTML, CSS, JavaScript and images.
+This folder is the complete website. Upload its entire contents to the web
+root. Every public page is a plain static file. The only server-side code is
+the /admin/ publishing area, which needs PHP 8.0+ with pdo_sqlite and gd
+(standard on shared hosting).
 
 CONTENTS
   index.html            Home
   about.html            About Us & Team (7 partners)
   services.html         9 services with capability-sheet lightbox
   industries.html       5 industries with capability-sheet lightbox
-  insights.html         Insights listing (3 articles)
-  insight-*.html        Three partner-written articles
+  insights.html         Insights listing -- GENERATED, do not hand-edit
+  insights/             Published articles + search index -- GENERATED
+  insight-*.html        Redirect stubs to the old article URLs
+  rss.xml               Insights RSS feed -- GENERATED
+  admin/                Publishing area (PHP + SQLite)
   query.html            Submit a Query form
   careers.html          Careers + application form (resume upload)
   contact.html          Contact details, form and Google Map
   calculators/          11 financial calculators + a listing page
   robots.txt            Search engine directives
-  sitemap.xml           All 23 pages (11 site + 12 calculator)
+  sitemap.xml           All pages -- GENERATED on publish
   llms.txt              Plain-text firm summary for AI answer engines
   assets/css/site.css   One stylesheet (navy/ivory/gold design system)
   assets/js/site.js     One script, no libraries
@@ -43,8 +47,31 @@ BEFORE GOING LIVE
      Until then the forms validate but show a "demo mode" message.
   2. UPDATE THE DOMAIN if it differs from www.veghaandassociates.com;
      canonical, Open Graph, sitemap and article URLs assume it.
-  3. SUBMIT sitemap.xml in Google Search Console so the calculator pages
-     get indexed.
+  3. SET THE ADMIN PASSWORD IMMEDIATELY AFTER UPLOADING.
+     Visit https://yourdomain/admin/ -- the first visit shows a "first-time
+     setup" screen that sets the password. Until that is done, ANYONE who
+     reaches /admin/ can claim it. Upload and set the password in the same
+     sitting; do not leave it overnight.
+  4. SUBMIT sitemap.xml in Google Search Console so the calculator and
+     article pages get indexed.
+  5. IF YOUR HOST RUNS NGINX (rare on shared hosting), admin/data/.htaccess
+     is ignored and blog.sqlite -- which holds the admin password hash --
+     becomes downloadable. Ask support to add:
+         location ^~ /admin/data/ { deny all; }
+     On Apache the supplied .htaccess already handles this.
+
+PUBLISHING
+  Log in at /admin/, write a post (title, rich-text body, category, excerpt,
+  SEO fields, optional featured image) and press Publish. That regenerates
+  the article page, insights.html, the search index, rss.xml and sitemap.xml
+  as static files. Nothing else needs doing.
+
+  Those generated files are overwritten on every publish -- edit articles in
+  the admin, never by hand.
+
+  BACK UP admin/data/blog.sqlite occasionally. That single file is the whole
+  blog: every article plus the admin password hash. Never commit a copy taken
+  from the live server back into a public git repository.
 
 KNOWN CONTENT ITEMS FOR THE CLIENT
   - The Services and Industries hero photographs are the same image

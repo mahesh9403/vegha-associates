@@ -648,3 +648,18 @@ em.accent { font-style: italic; color: var(--gold-500); }
 .calc-card .svc__go { margin-top: .6rem; }
 .calc-related { margin-top: 2.5rem; }
 
+/* blog additions */
+.post__thumb { background: var(--paper-deep); }
+.blog-toolbar { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin-bottom: 2rem; }
+.blog-toolbar input[type="search"] {
+  flex: 1 1 220px; max-width: 340px; padding: .6rem .9rem; border: 1px solid var(--rule); border-radius: 99px; background: #fff; font-size: .92rem;
+}
+.blog-toolbar input[type="search"]:focus { outline: none; border-color: var(--gold-500); box-shadow: 0 0 0 3px rgba(194,154,78,.18); }
+.blog-cats { display: flex; gap: .35rem; flex-wrap: wrap; }
+.blog-cats button {
+  border: 1px solid var(--rule); background: #fff; border-radius: 99px; padding: .4rem .95rem;
+  font-size: .82rem; font-weight: 500; color: var(--ink-mid); cursor: pointer; transition: all .25s var(--ease);
+}
+.blog-cats button:hover { border-color: var(--gold-300); color: var(--navy-900); }
+.blog-cats button.is-active { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
+.post--hidden { display: none; }

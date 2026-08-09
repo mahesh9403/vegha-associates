@@ -1,72 +1,80 @@
-# Add the 11 financial calculators to the site
+# Blog platform (/admin/ + Insights)
 
-Source package: `~/Downloads/vegha-website-redesign (1)/` (Aug 9), described in
-`Nextsteps.md`. That package contained **two** deliverables: the calculators and a
-PHP blog platform. **Only the calculators are shipped here** — the blog is deferred.
-
-## Key finding
-
-The package was built from an **older lineage** than this repo. Copying it in wholesale
-would have silently reverted five local fixes, so this was a selective merge:
-
-- `about.html` + `site.css` — mobile hero fix (commit 9dccd4b)
-- `site.css` — `--stat-overlap` custom property + `.hero--with-stats` rule
-- `site.css` — `.contact-item__ic svg` sizing
-- `index.html` — `hero--with-stats` class on the hero
-- `contact.html` — real SVG contact icons (package downgrades them to dingbats ✆ ✉ ⏰)
-- `assets/img/partner-anil-kumar-*` — repo has a newer headshot (navy blazer); both
-  ZIPs carry the older brown-blazer shot
+Second half of the delivered package (`~/Downloads/vegha-website-redesign (1)/`).
+The calculators shipped first in `2c10195`; this adds the publishing side.
 
 ## Shipped
 
-- [x] `calculators/` — 11 calculators + listing page
-- [x] `assets/js/calc.js` — maths, charts, schedules
-- [x] `assets/css/site.css` — calculators block appended
-- [x] `assets/js/site.js` — slider fill + quick-rate buttons
-- [x] Header nav (7 pages): Calculators added; "About & Team" → "About" for nav room
-- [x] Footer "Firm" list (7 pages): Calculators added
-- [x] `index.html` — "Free tools" calculators band
-- [x] `sitemap.xml` — 23 URLs (11 site + 12 calculator)
-- [x] `README.txt` — calculators section + Budget-review note
+- [x] `admin/` — PHP + SQLite publishing area (auth, editor, image upload, preview)
+- [x] `insights/` — 3 published articles + search index
+- [x] `insights.html` — listing with live search + category filters (GENERATED)
+- [x] `insight-*.html` — redirect stubs to the new `/insights/<slug>.html` URLs
+- [x] `rss.xml`, `assets/img/blog/` upload dir
+- [x] `robots.txt` — `Disallow: /admin/`
+- [x] `site.js` / `site.css` — blog filtering + blog listing styles re-added
+- [x] `sitemap.xml` — 23 URLs (9 static + 11 calculator + 3 articles)
+- [x] `README.txt` — publishing, backup and go-live steps
 
-## Deliberately held back (blog platform — "take care later")
+## Security review of the vendor's PHP (repo is PUBLIC)
 
-`admin/` (PHP CMS + SQLite), `insights/` (article pages at new slugs),
-`insights.html` rewrite with search/category filters, `insight-*.html` → redirect
-stubs, `rss.xml`, `assets/img/blog/`, and `robots.txt`'s `Disallow: /admin/`.
+Sound already: image upload does `getimagesize` + MIME allowlist + full GD
+re-encode + random name + forced extension (no PHP-in-a-JPEG vector); CSRF via
+`hash_equals`; `password_hash`/`PASSWORD_DEFAULT`; login rate-limited; slugs always
+pass through `slugify()`, so the file writes and deletes cannot traverse.
 
-The package **interleaves** blog and calculator code, so this needed unpicking rather
-than just skipping files:
-- `site.js` — one appended block held both blog filtering *and* the calculator slider
-  fill. Kept the slider half, dropped the blog half.
-- `site.css` — the appended tail ended with `.blog-toolbar` / `.blog-cats` /
-  `.post--hidden` / `.post__thumb`. Dropped those 15 lines; verified `.post__thumb`
-  is used by nothing else and the original `insights.html` never referenced them.
-- `sitemap.xml` — rebuilt as original 11 + 12 calculator URLs, with the blog's
-  `/insights/*` URLs excluded.
+Fixed here (all four verified against a live PHP server):
+1. **Session cookie flags** — `session_start()` set none. Now `HttpOnly` +
+   `SameSite=Lax`, with `Secure` conditional on HTTPS (and `X-Forwarded-Proto`, for
+   hosts that terminate TLS at a proxy) so local HTTP testing still works.
+2. **Slug collisions** — two posts with the same title produced the same
+   `insights/<slug>.html`; the second overwrote the first, and unpublishing either
+   deleted the survivor's live page. Added `unique_slug()`, which suffixes `-2`, `-3`
+   and takes an `$ignoreId` so a post keeps its own slug when re-saved.
+5. **Attempts not cleared on success** — a few typos then a correct password left the
+   user one attempt from a 15-minute lockout. `clear_attempts()` on successful login.
+6. **Dead code** — `preview.php` replaced two strings with themselves. Removed, with a
+   comment explaining why no rewriting is needed (/admin/ and /insights/ sit at the
+   same depth, so the template's `../` paths already resolve).
 
-## Review
+Left alone deliberately:
+- **#3 nginx** — `admin/data/.htaccess` (`Require all denied`) is Apache-only. On nginx
+  it is ignored and `blog.sqlite`, which holds the password hash, becomes downloadable.
+  Cannot be fixed in code; documented in README as a go-live step.
+- **#4** — `H1` renders unescaped while its fallback is escaped. Admin-only input on a
+  single-author CMS; changing it would alter existing rendered headings.
 
-**One real bug caught during the merge.** The site.js additions belong *inside* the
-IIFE, before the closing `})();` — not at end-of-file. A naive `>>` append put them
-outside the closure where `$$` is undefined, so the sliders would have failed silently
-with a ReferenceError. Rebuilt with the correct insertion point.
+## Verified against a real PHP server (8.5.9, pdo_sqlite + gd + webp)
 
-**Verified**
-- `node --check` passes on `site.js` and `calc.js`; CSS braces balanced (348/348)
-- 862 internal refs crawled → 0 broken; 23 sitemap URLs → all resolve
-- No stray references anywhere to the removed `admin/`, `insights/` or `rss.xml`
-- Home Loan EMI: ₹50L @ 8.5% / 20y → **₹43,391**, checked by hand against
-  P·r(1+r)^n/((1+r)^n−1); totals self-consistent; 20 schedule rows
-- Income Tax defaults (₹16L salary, 80C ₹1.5L, 80D ₹25k): new ₹1,13,100 vs old
-  ₹2,34,000 → **₹1,20,900 saving**, reproduced by hand on FY2025-26 slabs
-  (new 4/8/12/16/20/24 L with ₹75k SD; old 2.5/5/10 L with ₹50k SD; 4% cess)
-- Zero console errors
-- Repo-only fixes confirmed live in-browser: stats band overlaps hero by exactly
-  74px, about hero mobile rule present, 5 contact SVGs at 21×21
+- `php -l` clean on all 7 files
+- First-run setup → password set (bcrypt `$2y$12$`) → dashboard lists the 3 seeded posts
+- Cookie asserted as `HttpOnly; SameSite=Lax`, `Secure` absent over HTTP (correct)
+- **Publish loop**: created and published an article → `insights/<slug>.html` written,
+  `insights.html` 3→4 posts, `rss.xml` 3→4 items, sitemap 3→4 article URLs,
+  search index 3→4 entries, no unfilled `{{...}}`, 3 JSON-LD blocks, canonical correct
+- **Slug fix**: duplicate title → `...-msmes-2`, both files survive; re-saving a post
+  keeps its own slug (no self-collision, no orphan)
+- **Attempts fix**: 3 failures recorded → correct password → 0; lockout still fires at 8
+- CSRF with a bad token → 403; `preview.php` renders with correct asset paths
+- **Delete** → both test posts removed, all generated files back to the seeded baseline,
+  no orphan files
+- Front end: listing renders, search "gst" → 1 of 3, category filter works, 885 internal
+  refs → 0 broken, 23 sitemap URLs resolve, zero console errors
 
-**Still outstanding**
+Test DB was restored from a pre-test backup — the committed `blog.sqlite` has 0 rows in
+`settings` and `attempts` (no password hash, no IPs) and the original 3 posts.
+
+## Known quirks (vendor package, not introduced here)
+
+- The shipped `insights.html` shows post 1's card headline using its `h1` text, but
+  `listing_item()` builds cards from `title`. On the client's first publish that one
+  headline changes from "Statutory audit or tax audit? What actually applies to your
+  business" to "Statutory Audit or Tax Audit? What Applies to Your Business". Cosmetic;
+  fix by editing the post's Title field if the sentence-case version is preferred.
+- `rss.xml` `pubDate` offsets follow the *server's* PHP timezone. The vendor's seed file
+  carries `+0530`; a host set to UTC will emit `+0000` on the next publish.
+
+## Still outstanding
+
 - Web3Forms key in `assets/js/site.js` (`ACCESS_KEY`) — forms are in demo mode
-- Tax rates need a ~10-minute review after each Union Budget (see README)
-- Client content items unchanged: shared partner headshot, duplicated
-  Services/Industries hero photo
+- Set the admin password immediately after upload (see README step 3)
+- Tax slabs need a review after each Union Budget
