@@ -7,6 +7,9 @@ Thumbs.db
 # and every article published since. admin/data/seed.sql builds it on first run.
 admin/data/blog.sqlite
 
+# Runtime state written by send.php. (enquiries.log is covered by *.log above.)
+admin/data/form-throttle.json
+
 # Images uploaded through the admin live on the server, not in the repo.
 assets/img/blog/*
 !assets/img/blog/.gitkeep

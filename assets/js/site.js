@@ -163,9 +163,9 @@
   }
 
   /* -------------------------------------------------------------- forms -- */
-  /* Set ACCESS_KEY to a Web3Forms access key (free, from web3forms.com).
-     Until then, forms validate fully and show a demo-mode message. */
-  var ACCESS_KEY = "";
+  /* Submissions post to send.php on this server, which emails them to the Firm.
+     Nothing is sent to a third party, so there is no key to configure. */
+  var ENDPOINT = "send.php";
   var MAX_FILE = 1024 * 1024; /* 1 MB resume cap */
 
   $$("form[data-mail]").forEach(function (form) {
@@ -217,29 +217,22 @@
       }
       if (form.querySelector(".hp-field") && form.querySelector(".hp-field").value) return; /* bot */
 
-      if (!ACCESS_KEY) {
-        say("Demo mode: the form is fully working but not yet connected to a mailbox. Set the Web3Forms ACCESS_KEY in assets/js/site.js to activate delivery to admin@veghaandassociates.com.", true);
-        return;
-      }
-
       var btn = form.querySelector('[type="submit"]');
       var label = btn.textContent;
       btn.disabled = true;
       btn.textContent = "Sending…";
 
       var fd = new FormData(form);
-      fd.append("access_key", ACCESS_KEY);
-      fd.append("subject", (form.getAttribute("data-mail") || "Website message") + " | veghaandassociates.com");
-      fd.append("from_name", "VEGHA & ASSOCIATES website");
+      fd.append("form_name", form.getAttribute("data-mail") || "Website message");
 
-      fetch("https://api.web3forms.com/submit", { method: "POST", body: fd })
+      fetch(ENDPOINT, { method: "POST", body: fd })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (d.success) {
-            say("Thank you. Your message has been sent. A partner will respond shortly.", true);
+          if (d && d.success) {
+            say(d.message || "Thank you. Your message has been sent. A partner will respond shortly.", true);
             form.reset();
           } else {
-            say("Something went wrong sending the form. Please email admin@veghaandassociates.com instead.", false);
+            say((d && d.message) || "Something went wrong sending the form. Please email admin@veghaandassociates.com instead.", false);
           }
         })
         .catch(function () {

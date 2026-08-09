@@ -113,7 +113,8 @@ happens on the client's first real publish.
 
 ## Still outstanding
 
-- Web3Forms key in `assets/js/site.js` (`ACCESS_KEY`) — forms are in demo mode
+- Confirm form delivery on the real domain (send.php emails submissions itself;
+  no third party). Check spam on the first send and verify SPF for the domain.
 - Set the admin password immediately after upload (see README step 3)
 - Tax slabs need a review after each Union Budget
 - Uploaded blog images live only on the server (`assets/img/blog/` is gitignored) --

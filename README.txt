@@ -20,6 +20,7 @@ CONTENTS
   careers.html          Careers + application form (resume upload)
   contact.html          Contact details, form and Google Map
   calculators/          11 financial calculators + a listing page
+  send.php              Emails the contact/query/careers forms to the Firm
   robots.txt            Search engine directives
   sitemap.xml           All pages -- GENERATED on publish
   llms.txt              Plain-text firm summary for AI answer engines
@@ -76,11 +77,24 @@ GOING LIVE, AND EVERY UPDATE AFTER  ** READ THIS BEFORE DEPLOYING **
   scratch -- a new server, or a rebuild. It is not for updates.)
 
 BEFORE GOING LIVE
-  1. FORMS DO NOT SEND YET.
-     Open assets/js/site.js and set ACCESS_KEY to a Web3Forms access key
-     (free, from web3forms.com). Submissions then arrive at
-     admin@veghaandassociates.com, resume attachment included.
-     Until then the forms validate but show a "demo mode" message.
+  1. CHECK THE FORMS ACTUALLY DELIVER.
+     The contact, query and careers forms post to send.php on this server,
+     which emails them to admin@veghaandassociates.com with the CV attached.
+     Nothing goes through a third party, so there is no key to configure and
+     no outside service holds client enquiries or candidates' CVs.
+
+     What to verify once the site is on its real domain:
+       - Submit a test enquiry and confirm it arrives. Check the spam folder
+         the first time and mark it "Not spam" if needed.
+       - Mail is sent From noreply@veghaandassociates.com so that SPF and
+         DKIM match the domain; the sender's own address goes in Reply-To,
+         so hitting Reply answers them directly. If mail lands in spam, the
+         domain's SPF record is the first thing to check.
+       - To send somewhere else, edit TO_ADDRESS at the top of send.php.
+
+     Every submission is also appended to admin/data/enquiries.log before the
+     email goes out, so nothing is lost if delivery ever fails. That folder is
+     not web-readable.
   2. UPDATE THE DOMAIN if it differs from www.veghaandassociates.com;
      canonical, Open Graph, sitemap and article URLs assume it.
   3. SET THE ADMIN PASSWORD as soon as auto-deploy is off (see above).
