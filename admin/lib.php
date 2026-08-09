@@ -186,7 +186,8 @@ function regen_all(): void {
     foreach ($cats as $c) $catsHtml .= '<button type="button" data-cat="' . e($c) . '">' . e($c) . '</button>';
     $items = '';
     foreach ($posts as $p) $items .= listing_item($p);
-    file_put_contents(ROOT . '/insights.html', render(tpl('listing'), ['CATS' => $catsHtml, 'ITEMS' => $items]));
+    file_put_contents(ROOT . '/insights.html', render(tpl('listing'),
+        ['CATS' => $catsHtml, 'ITEMS' => $items, 'BUILD' => build_fingerprint()]));
 
     /* search index */
     $idx = array_map(fn($p) => ['slug' => $p['slug'], 'title' => $p['title'],
@@ -229,6 +230,36 @@ function regen_all(): void {
 function unpublish_cleanup(string $slug): void {
     $f = ROOT . '/insights/' . $slug . '.html';
     if (is_file($f)) unlink($f);
+}
+
+/* ------------------------------------------------ deploy self-healing ------ *
+ * insights.html, rss.xml, sitemap.xml and the article pages are generated but
+ * still tracked in git, so a deploy overwrites them with the repository's copies
+ * and any article published since silently drops off the listing.
+ *
+ * Timestamps cannot detect this: a deploy writes stale content with a fresh
+ * mtime. So regen_all() stamps the listing with a fingerprint of the published
+ * set, and we compare that against what the database says it should be. A deploy
+ * restores an older fingerprint, which no longer matches, and the next admin page
+ * load rebuilds. When nothing has changed the fingerprints agree and no work is
+ * done -- so this does not churn the files on every request. */
+function build_fingerprint(): string {
+    $parts = array_map(
+        fn($p) => $p['id'] . '|' . $p['slug'] . '|' . ($p['updated_at'] ?? ''),
+        published_posts()
+    );
+    return substr(sha1(implode("\n", $parts)), 0, 16);
+}
+function ensure_generated_fresh(): bool {
+    $listing = ROOT . '/insights.html';
+    $stamped = null;
+    if (is_file($listing)
+        && preg_match('/<!-- build:([a-f0-9]{16}) -->/', (string)file_get_contents($listing), $m)) {
+        $stamped = $m[1];
+    }
+    if ($stamped === build_fingerprint()) return false;
+    regen_all();
+    return true;
 }
 
 /* ------------------------------------------------------------- admin chrome - */

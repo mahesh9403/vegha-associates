@@ -82,6 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'
 }
 
 /* ---- dashboard ----------------------------------------------------------------- */
+/* A deploy overwrites the generated pages with the repository's copies, which can be
+   older than the database. Rebuild them if so; a no-op when they already agree. */
+if ($msg === '' && ensure_generated_fresh()) {
+    $msg = '<div class="msg msg-ok">The public pages were older than your articles &mdash; usually after a site update &mdash; so they were rebuilt.</div>';
+}
+
 $posts = db()->query('SELECT * FROM posts ORDER BY COALESCE(published_at, created_at) DESC, id DESC')->fetchAll();
 $rows = '';
 $tok = csrf_token();

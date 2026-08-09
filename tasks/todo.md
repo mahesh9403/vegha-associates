@@ -89,6 +89,28 @@ publish and delete still regenerate every output correctly.
 Made while the live database was still at seed state with no password set, so nothing
 could be lost. Doing it later would have been riskier.
 
+## Deployment: generated pages self-heal after a deploy
+
+Same trap as the database, one layer up. `insights.html`, `rss.xml`, `sitemap.xml` and
+the article pages are generated but still tracked, so a deploy restores the repository's
+copies and any article published since drops off the listing. The database keeps the
+article, so nothing is lost -- it just stops being linked, which reads as data loss.
+
+Timestamps cannot detect this: a deploy writes stale content with a *fresh* mtime. So
+`regen_all()` now stamps the listing with `<!-- build:HASH -->`, a fingerprint of the
+published set (id, slug, updated_at). `ensure_generated_fresh()` compares that with what
+the database implies and rebuilds on mismatch. It runs on the admin dashboard, so the
+first login after a deploy repairs the site.
+
+Verified: three dashboard loads with nothing changed triggered no rebuild and left the
+files byte-identical (no churn); publishing an article then restoring the pre-publish
+copies made it vanish from the listing, and the next dashboard load rebuilt listing, RSS
+and sitemap and brought it back.
+
+The shipped `insights.html` was stamped by hand rather than regenerated, so the vendor's
+sentence-case headline for post 1 survives -- the cosmetic flip noted above still only
+happens on the client's first real publish.
+
 ## Still outstanding
 
 - Web3Forms key in `assets/js/site.js` (`ACCESS_KEY`) — forms are in demo mode
