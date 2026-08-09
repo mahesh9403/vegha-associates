@@ -39,6 +39,42 @@ CALCULATORS
   each Union Budget: the tax slabs and rebate live in assets/js/calc.js,
   and the PPF/FD reference rates in the copy of their pages.
 
+GOING LIVE, AND EVERY UPDATE AFTER  ** READ THIS BEFORE DEPLOYING **
+
+  The live server owns the blog. The database (admin/data/blog.sqlite), the
+  uploaded images (assets/img/blog/) and the pages written on publish exist
+  ONLY there -- deliberately, so that shipping code cannot overwrite the
+  client's articles. Neither is in version control.
+
+  Git auto-deploy REPLACES the whole public_html folder and deletes anything
+  not in the repository. That is verified behaviour, not a guess: a test push
+  erased a password that had been set minutes earlier. So:
+
+    AUTO-DEPLOY IS SAFE ONLY WHILE THE SITE HAS NO CONTENT.
+
+  First deployment, in this order:
+    1. Push the finished site to GitHub.
+    2. Turn auto-deploy ON. The site lands complete; the blog database builds
+       itself from admin/data/seed.sql on the first visit to /admin/.
+    3. Check the site over.
+    4. TURN AUTO-DEPLOY OFF. Do this BEFORE step 5 -- not after.
+    5. Only now set the admin password and hand the panel to the client.
+
+  Every update after that -- auto-deploy stays off, permanently:
+    1. Commit and push as usual.
+    2. Run:  bash deploy/make-release.sh
+       That builds deploy/dist/code-update-*.zip, which deliberately omits the
+       database, the uploaded images and the generated pages.
+    3. Upload and extract it into public_html, overwriting when asked.
+    4. Log in to /admin/ and press "Rebuild public pages" so the listing,
+       article pages, feed and sitemap pick up the new code.
+
+  DO NOT switch auto-deploy back on to ship an update. One push would delete
+  every article and image the client has added. Upload the zip instead.
+
+  (full-install-*.zip from the same script is for setting up a fresh host from
+  scratch -- a new server, or a rebuild. It is not for updates.)
+
 BEFORE GOING LIVE
   1. FORMS DO NOT SEND YET.
      Open assets/js/site.js and set ACCESS_KEY to a Web3Forms access key
@@ -47,11 +83,11 @@ BEFORE GOING LIVE
      Until then the forms validate but show a "demo mode" message.
   2. UPDATE THE DOMAIN if it differs from www.veghaandassociates.com;
      canonical, Open Graph, sitemap and article URLs assume it.
-  3. SET THE ADMIN PASSWORD IMMEDIATELY AFTER UPLOADING.
+  3. SET THE ADMIN PASSWORD as soon as auto-deploy is off (see above).
      Visit https://yourdomain/admin/ -- the first visit shows a "first-time
      setup" screen that sets the password. Until that is done, ANYONE who
-     reaches /admin/ can claim it. Upload and set the password in the same
-     sitting; do not leave it overnight.
+     reaches /admin/ can claim it, and the path is discoverable because this
+     project is on a public repository. Do it in the same sitting.
   4. SUBMIT sitemap.xml in Google Search Console so the calculator and
      article pages get indexed.
   5. IF YOUR HOST RUNS NGINX (rare on shared hosting), admin/data/.htaccess

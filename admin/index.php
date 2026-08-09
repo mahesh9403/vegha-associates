@@ -53,6 +53,16 @@ if (!is_logged_in()) {
     exit;
 }
 
+/* ---- rebuild ------------------------------------------------------------------ *
+ * The automatic check compares article data, so it cannot notice a code update that
+ * changed a template or the page list. Uploading new code is exactly when that
+ * happens, so this forces a rebuild by hand. */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'rebuild') {
+    csrf_check();
+    regen_all();
+    $msg = '<div class="msg msg-ok">Public pages rebuilt from your articles.</div>';
+}
+
 /* ---- actions (publish / unpublish / delete) ---------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
     csrf_check();
@@ -115,7 +125,13 @@ foreach ($posts as $p) {
 admin_page('Posts', $msg . '<div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
 <h2 style="margin:0">Articles</h2>
+<span style="display:flex;gap:.6rem;align-items:center">
+<form method="post" style="display:inline">
+<input type="hidden" name="csrf" value="' . $tok . '">
+<button class="btn btn-ghost" name="action" value="rebuild" title="Regenerate the Insights listing, article pages, feed and sitemap from your articles. Use this after the site code has been updated.">Rebuild public pages</button>
+</form>
 <a class="btn btn-primary" href="edit.php">+ New article</a>
+</span>
 </div>
 <table style="margin-top:1.2rem">
 <thead><tr><th>Title</th><th>Status</th><th>Open</th><th>Actions</th></tr></thead>

@@ -10,3 +10,4 @@ admin/data/blog.sqlite
 # Images uploaded through the admin live on the server, not in the repo.
 assets/img/blog/*
 !assets/img/blog/.gitkeep
+deploy/dist/
