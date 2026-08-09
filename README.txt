@@ -73,6 +73,10 @@ PUBLISHING
   blog: every article plus the admin password hash. Never commit a copy taken
   from the live server back into a public git repository.
 
+  Back up assets/img/blog/ alongside it. Neither is in version control -- the
+  server holds the only copy of both, by design, so that deploying code cannot
+  overwrite the articles.
+
 KNOWN CONTENT ITEMS FOR THE CLIENT
   - The Services and Industries hero photographs are the same image
     (differently cropped in CSS as an interim treatment).
