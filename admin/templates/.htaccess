@@ -1,0 +1,3 @@
+# Publishing templates. PHP reads these off the filesystem, so nothing here ever
+# needs to be served over HTTP.
+Require all denied
